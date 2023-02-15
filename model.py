@@ -21,8 +21,9 @@ def create_model(data_ct):
     x3 = layers.Conv2D(256, 3, activation='relu', padding="same")(x32)
     x31 = layers.Conv2D(256, 3, activation='relu', padding="same")(x3)
     x32 = layers.MaxPooling2D()(x31)
-
-    in2 = layers.Input(shape=data_pet.shape[1:])
+    
+    # Second branch 
+    in2 = layers.Input(shape=data_ct.shape[1:])
     y = layers.Conv2D(32, 3, activation='relu', padding="same")(in2)
     y11 = layers.Conv2D(32, 3, activation='relu', padding="same")(y)
     y12 = layers.MaxPooling2D()(y11)
@@ -38,8 +39,12 @@ def create_model(data_ct):
     y3 = layers.Conv2D(256, 3, activation='relu', padding="same")(y32)
     y31 = layers.Conv2D(256, 3, activation='relu', padding="same")(y3)
     y32 = layers.MaxPooling2D()(y31)
+    
+    # Concat
 
     out = layers.Concatenate()([x32, y32])
+    
+    # Decoder
 
     z = layers.UpSampling2D(size=(2, 2))(out)
     z11 = layers.Conv2D(256, 3, activation='relu', padding="same")(z)
@@ -59,3 +64,5 @@ def create_model(data_ct):
     z43 = layers.Conv2D(1, 1, activation='softmax')(z42)
 
     model2 = models.Model(inputs=[in1, in2], outputs=z43)
+    
+    return model2

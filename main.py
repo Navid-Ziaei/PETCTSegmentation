@@ -9,7 +9,7 @@ from model import *
 from metrics import *
 
 # get the path directory
-device = 'Navid'
+device = 'Raha'
 
 if device == 'Navid':
     path_ct = "F:/Datasets/PET_CT/original images/test/CT/"
