@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+
 from import_data import *
 import tensorflow as tf
 
@@ -24,6 +26,15 @@ data_ct = import_data(path_ct)
 data_pet = import_data(path_pet)
 data_seg = import_data(path_seg)
 
+# 1- Load all data using flow from directory
+# 2- Train model
+# 3- Add augmentation
+# 4- Visializtion
+# 5- EDA
+# 6- Add handcrafted features
+
+# 7- Implement state of the art model
+
 data_ct = data_ct[:, :, :, np.newaxis]
 data_pet = data_pet[:, :, :, np.newaxis]
 
@@ -35,3 +46,11 @@ hist = model.fit(x=(data_ct, data_pet),
                  batch_size=1,
                  epochs=3,
                  validation_split=0.2)
+
+fig, axes = plt.Subplot(1)
+axes[0].plot(hist.history['accuracy'])
+
+result = model.evaluate(x_test, y_test)
+# save result
+
+
