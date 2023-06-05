@@ -4,8 +4,8 @@ layers = tf.keras.layers
 models = tf.keras.models
 
 
-def create_model(data_ct):
-    in1 = layers.Input(shape=data_ct.shape[1:])
+def create_model(input_shape):
+    in1 = layers.Input(shape=input_shape)
     x = layers.Conv2D(32, 3, activation='relu', padding="same")(in1)
     x11 = layers.Conv2D(32, 3, activation='relu', padding="same")(x)
     x12 = layers.MaxPooling2D()(x11)
@@ -23,7 +23,7 @@ def create_model(data_ct):
     x32 = layers.MaxPooling2D()(x31)
     
     # Second branch 
-    in2 = layers.Input(shape=data_ct.shape[1:])
+    in2 = layers.Input(shape=input_shape)
     y = layers.Conv2D(32, 3, activation='relu', padding="same")(in2)
     y11 = layers.Conv2D(32, 3, activation='relu', padding="same")(y)
     y12 = layers.MaxPooling2D()(y11)
