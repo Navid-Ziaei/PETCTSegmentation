@@ -11,21 +11,26 @@ import numpy as np
 from model import *
 from metrics import *
 
+settings = {
+    "batch_size": 4,
+    "epochs": 50,
+    "seed": 42
+}
 # get the path directory
 device = 'Navid-PC'
 
 if device == 'Navid':
-    dataset_path = "F:/Datasets/PET_CT/original images/train/"
+    dataset_path_train = "F:/Datasets/PET_CT/original images/train/"
 elif device == 'Navid-PC':
-    dataset_path = "D:/Navid/Dataset/Head-Neck-PET-CT/Dataset/train/"
+    dataset_path_train = "D:/Navid/Dataset/Head-Neck-PET-CT/Dataset/train/"
 elif device == 'Raha':
-    dataset_path = "C:/Users/SadrSystem/Desktop/dissertation_Raha/dataset/new/trainn/"
+    dataset_path_train = "C:/Users/SadrSystem/Desktop/dissertation_Raha/dataset/new/trainn/"
 
-dataset_path = "D:/Navid/Dataset/Head-Neck-PET-CT/Dataset/train/"
+dataset_path_train = "D:/Navid/Dataset/Head-Neck-PET-CT/Dataset/train/"
 
-path_ct = dataset_path + "/CT/"
-path_pet = dataset_path + "/PET/"
-path_seg = dataset_path + "/SEG/"
+path_ct_train = dataset_path_train + "/CT/"
+path_pet_train = dataset_path_train + "/PET/"
+path_seg_train = dataset_path_train + "/SEG/"
 
 # create generator
 datagen = ImageDataGenerator()
@@ -36,28 +41,28 @@ mask_generator = ImageDataGenerator()
 
 datagen = ImageDataGenerator()
 
-pet_generator = datagen.flow_from_directory(path_pet,
+pet_generator = datagen.flow_from_directory(path_pet_train,
                                             class_mode=None,
                                             color_mode='grayscale',
                                             target_size=(144, 144),
-                                            seed=42,
+                                            seed=settings["seed"],
                                             shuffle=False,
-                                            batch_size=4)
+                                            batch_size=settings["batch_size"])
 
-ct_generator = datagen.flow_from_directory(path_ct,
+ct_generator = datagen.flow_from_directory(path_ct_train,
                                            class_mode=None,
                                            color_mode='grayscale',
                                            target_size=(144, 144),
-                                           seed=42,
+                                           seed=settings["seed"],
                                            shuffle=False,
-                                           batch_size=4)
+                                           batch_size=settings["batch_size"])
 
-mask_generator = datagen.flow_from_directory(path_seg,
+mask_generator = datagen.flow_from_directory(path_seg_train,
                                              class_mode=None,
                                              target_size=(144, 144),
-                                             seed=42,
+                                             seed=settings["seed"],
                                              shuffle=False,
-                                             batch_size=4)
+                                             batch_size=settings["batch_size"])
 
 
 def dataset_generator():
@@ -67,11 +72,12 @@ def dataset_generator():
         mask = mask_generator.next()
         yield [pet_img, ct_img], mask
 
-# Test the generator by retrieving one batch
-generator = dataset_generator()
-inputs, targets = next(generator)
 
-idx=3
+# Test the generator by retrieving one batch
+data_train = dataset_generator()
+inputs, targets = next(data_train)
+
+idx = 3
 fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 axes[0].imshow(inputs[0][idx], cmap='gray')
 axes[0].set_title("PET")
@@ -84,7 +90,7 @@ axes[2].set_title("Mask")
 plt.tight_layout()
 plt.show()
 
-data_train = dataset_generator()
+
 
 ##data_ct = import_data(path_ct)
 ##data_pet = import_data(path_pet)
@@ -104,11 +110,12 @@ data_train = dataset_generator()
 
 
 model = create_model(input_shape=(144, 144, 1))
-model.compile(optimizer=Adam(lr=1e-3), loss=binary_crossentropy, metrics=[dice_coef])
+model.compile(optimizer=Adam(learning_rate=1e-3), loss=binary_crossentropy, metrics=[dice_coef])
 
 hist = model.fit(data_train,
-                 batch_size=1,
-                 epochs=3)
+                 batch_size=settings["batch_size"],
+                 epochs=settings["epochs"],
+                 steps_per_epoch=len(ct_generator))
 
 fig, axes = plt.Subplot(1)
 axes[0].plot(hist.history['accuracy'])
