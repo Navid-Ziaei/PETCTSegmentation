@@ -12,17 +12,21 @@ from model import *
 from metrics import *
 
 # get the path directory
-device = 'Raha'
+device = 'Navid-PC'
 
 if device == 'Navid':
-    path_ct  = "F:/Datasets/PET_CT/original images/test/CT/"
-    path_pet = "F:/Datasets/PET_CT/original images/test/PET/"
-    path_seg = "F:/Datasets/PET_CT/original images/test/SEG/"
+    dataset_path = "F:/Datasets/PET_CT/original images/train/"
+elif device == 'Navid-PC':
+    dataset_path = "D:/Navid/Dataset/Head-Neck-PET-CT/Dataset/train/"
 elif device == 'Raha':
-    path_ct  = "C:/Users/SadrSystem/Desktop/dissertation_Raha/dataset/new/trainn/CT/"
-    path_pet = "C:/Users/SadrSystem/Desktop/dissertation_Raha/dataset/new/trainn/PET/"
-    path_seg = "C:/Users/SadrSystem/Desktop/dissertation_Raha/dataset/new/trainn/SEG/"
-    
+    dataset_path = "C:/Users/SadrSystem/Desktop/dissertation_Raha/dataset/new/trainn/"
+
+dataset_path = "D:/Navid/Dataset/Head-Neck-PET-CT/Dataset/train/"
+
+path_ct = dataset_path + "/CT/"
+path_pet = dataset_path + "/PET/"
+path_seg = dataset_path + "/SEG/"
+
 # create generator
 datagen = ImageDataGenerator()
 
@@ -30,33 +34,55 @@ pet_generator = ImageDataGenerator()
 ct_generator = ImageDataGenerator()
 mask_generator = ImageDataGenerator()
 
-def dataset_generator():
+datagen = ImageDataGenerator()
 
-    # prepare an iterators for each dataset
-    train_ct  = ct_generator.flow_from_directory(path_ct, 
-                                                 class_mode = None ,
-                                                 target_size= (144,144),
-                                                 seed = 42,
-                                                 shuffle=False,
-                                                 batch_size=4)
-    train_pet = pet_generator.flow_from_directory(path_pet  ,   
-                                                class_mode = None ,
-                                                target_size= (144,144),
-                                                seed = 42,
-                                                shuffle=False,
-                                                batch_size=4
-                                                  )
-    train_seg = mask_generator.flow_from_directory(path_seg  ,
-                                                    class_mode = None ,
-                                                    target_size= (144,144),
-                                                    seed = 42,
-                                                    shuffle=False,
-                                                    batch_size=4)
+pet_generator = datagen.flow_from_directory(path_pet,
+                                            class_mode=None,
+                                            color_mode='grayscale',
+                                            target_size=(144, 144),
+                                            seed=42,
+                                            shuffle=False,
+                                            batch_size=4)
+
+ct_generator = datagen.flow_from_directory(path_ct,
+                                           class_mode=None,
+                                           color_mode='grayscale',
+                                           target_size=(144, 144),
+                                           seed=42,
+                                           shuffle=False,
+                                           batch_size=4)
+
+mask_generator = datagen.flow_from_directory(path_seg,
+                                             class_mode=None,
+                                             target_size=(144, 144),
+                                             seed=42,
+                                             shuffle=False,
+                                             batch_size=4)
+
+
+def dataset_generator():
     while True:
-        pet_img = train_pet.next()
-        ct_img = train_ct.next()
-        mask = train_seg.next()
+        pet_img = pet_generator.next()
+        ct_img = ct_generator.next()
+        mask = mask_generator.next()
         yield [pet_img, ct_img], mask
+
+# Test the generator by retrieving one batch
+generator = dataset_generator()
+inputs, targets = next(generator)
+
+idx=3
+fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+axes[0].imshow(inputs[0][idx], cmap='gray')
+axes[0].set_title("PET")
+
+axes[1].imshow(inputs[1][idx], cmap='gray')
+axes[1].set_title("CT")
+
+axes[2].imshow(targets[idx], cmap='gray')
+axes[2].set_title("Mask")
+plt.tight_layout()
+plt.show()
 
 data_train = dataset_generator()
 
@@ -76,7 +102,8 @@ data_train = dataset_generator()
 ##data_ct  = data_ct[:, :, :, np.newaxis]
 ##data_pet = data_pet[:, :, :, np.newaxis]
 
-model = create_model(input_shape=(144,144,1))
+
+model = create_model(input_shape=(144, 144, 1))
 model.compile(optimizer=Adam(lr=1e-3), loss=binary_crossentropy, metrics=[dice_coef])
 
 hist = model.fit(data_train,
@@ -88,5 +115,3 @@ axes[0].plot(hist.history['accuracy'])
 
 result = model.evaluate(x_test, y_test)
 # save result
-
-
