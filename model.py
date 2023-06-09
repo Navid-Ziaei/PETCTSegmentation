@@ -1,4 +1,8 @@
 import tensorflow as tf
+from keras.models import Model
+from keras.layers import Input, Conv2D, MaxPooling2D, Dropout, UpSampling2D, concatenate
+from keras.optimizers import Adam
+from keras.losses import BinaryCrossentropy
 
 layers = tf.keras.layers
 models = tf.keras.models
@@ -66,3 +70,33 @@ def create_model(input_shape):
     model2 = models.Model(inputs=[in1, in2], outputs=z43)
     
     return model2
+
+
+def simple_model(input_shape):
+    inputs1 = Input(input_shape)
+    inputs2 = Input(input_shape)
+
+    # Encoder 1
+    conv11 = Conv2D(32, 3, activation='relu', padding='same')(inputs1)
+    conv11 = Conv2D(32, 3, activation='relu', padding='same')(conv11)
+    pool11 = MaxPooling2D(pool_size=(2, 2))(conv11)
+
+
+
+    # Encoder 1
+    conv12 = Conv2D(32, 3, activation='relu', padding='same')(inputs2)
+    conv12 = Conv2D(32, 3, activation='relu', padding='same')(conv12)
+    pool12 = MaxPooling2D(pool_size=(2, 2))(conv12)
+
+    out = layers.Concatenate()([pool11, pool12])
+
+    # Decoder
+    conv2 = Conv2D(64, 3, activation='relu', padding='same')(out)
+    conv2 = Conv2D(64, 3, activation='relu', padding='same')(conv2)
+    up1 = UpSampling2D(size=(2, 2))(conv2)
+
+    # Output
+    output = Conv2D(1, 1, activation='sigmoid')(up1)
+
+    model = Model(inputs=[inputs1, inputs2], outputs=output)
+    return model

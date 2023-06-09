@@ -60,6 +60,7 @@ ct_generator = datagen.flow_from_directory(path_ct_train,
 mask_generator = datagen.flow_from_directory(path_seg_train,
                                              class_mode=None,
                                              target_size=(144, 144),
+                                             color_mode='grayscale',
                                              seed=settings["seed"],
                                              shuffle=False,
                                              batch_size=settings["batch_size"])
@@ -90,12 +91,6 @@ axes[2].set_title("Mask")
 plt.tight_layout()
 plt.show()
 
-
-
-##data_ct = import_data(path_ct)
-##data_pet = import_data(path_pet)
-##data_seg = import_data(path_seg)
-
 # 1- Load all data using flow from directory
 # 2- Train model
 # 3- Add augmentation
@@ -105,12 +100,9 @@ plt.show()
 
 # 7- Implement state of the art model
 
-##data_ct  = data_ct[:, :, :, np.newaxis]
-##data_pet = data_pet[:, :, :, np.newaxis]
 
-
-model = create_model(input_shape=(144, 144, 1))
-model.compile(optimizer=Adam(learning_rate=1e-3), loss=binary_crossentropy, metrics=[dice_coef])
+model = simple_model(input_shape=(144, 144, 1))
+model.compile(optimizer=Adam(learning_rate=1e-3), loss=dice_loss, metrics=[dice_coefficient])
 
 hist = model.fit(data_train,
                  batch_size=settings["batch_size"],
