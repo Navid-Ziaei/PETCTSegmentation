@@ -1,14 +1,19 @@
 import os
-
+import torch
+from torch.utils.data import Dataset, DataLoader, random_split
 from torch import nn, optim
 
 from src.visualization import visualize_slices
 from src.data import MedicalDataset
 from src.utils import *
-import torch
-from torch.utils.data import Dataset, DataLoader, random_split
 from src.model.unet_model import UNet
+from src.settings import Settings, Paths
 
+settings = Settings()
+settings.load_settings()
+
+paths = Paths(settings=settings)
+paths.load_device_paths()
 
 
 data_path = "D:\\Datasets\\PetCT\\"
@@ -68,7 +73,7 @@ val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
 
-# Instantiate the model, define the loss function and the optimizer
+# Instantiate the saved_model, define the loss function and the optimizer
 model = UNet()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)

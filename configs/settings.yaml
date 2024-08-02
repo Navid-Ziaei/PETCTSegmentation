@@ -16,7 +16,7 @@ batch_size : 100
 num_epochs : 100
 test_size: 0.2
 
-# Load a pretrained model
+# Load a pretrained saved_model
 load_pretrained_model: true
 
 # Enable or disable debug mode

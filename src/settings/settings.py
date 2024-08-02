@@ -49,7 +49,7 @@ class Settings:
         from device_path.json
         return:
             settings: a Settings object
-            network_settings: a dictionary containing settings of the model
+            network_settings: a dictionary containing settings of the saved_model
             device_path: the path to the datasets on the local device
         """
 
@@ -70,11 +70,11 @@ class Settings:
         else:
             self.dataset = settings_json["dataset"]
 
-        if "model" not in settings_json.keys():
-            raise Exception('"model" was not found in settings.json!')
+        if "saved_model" not in settings_json.keys():
+            raise Exception('"saved_model" was not found in settings.json!')
         else:
-            self.model = settings_json["model"]
-            del settings_json["model"]
+            self.model = settings_json["saved_model"]
+            del settings_json["saved_model"]
 
         if self.dataset.lower() == 'ieeg':
             if "target_class" not in settings_json.keys():

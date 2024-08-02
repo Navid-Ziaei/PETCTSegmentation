@@ -45,7 +45,7 @@ class Paths:
             self.folder_name = 'debug'
         results_base_path = results_base_path + self.folder_name + '/'
 
-        model_path = os.path.join(results_base_path + 'model/')
+        model_path = os.path.join(results_base_path + 'saved_model/')
         Path(results_base_path).mkdir(parents=True, exist_ok=True)
         Path(model_path).mkdir(parents=True, exist_ok=True)
         self.path_model.append(model_path)
