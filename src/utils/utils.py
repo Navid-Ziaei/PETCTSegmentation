@@ -38,3 +38,4 @@ def calculate_stats(data):
         'std': np.std(data)
     }
     return stats
+

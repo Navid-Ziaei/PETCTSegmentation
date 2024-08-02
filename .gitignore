@@ -1,14 +1,21 @@
+
+
 __pycache__/
+
 saved_model/
 results/
 result/
 data/
+
+configs/device_path.yaml
+configs/settings.yaml
+
+
 .idea/
 .spyderproject/
 .spyproject/
-device_path.json
-configs/settings.json
-data/
+
+
 
 **/__pycache__/
 **/saved_model/

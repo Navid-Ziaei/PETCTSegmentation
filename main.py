@@ -7,9 +7,9 @@ from src.data import MedicalDataset
 from src.utils import *
 import torch
 from torch.utils.data import Dataset, DataLoader, random_split
-from sklearn.model_selection import train_test_split
-import numpy as np
 from src.model.unet_model import UNet
+
+
 
 data_path = "D:\\Datasets\\PetCT\\"
 
@@ -86,8 +86,8 @@ for epoch in range(num_epochs):
         # Concatenate CTres and SUV images along the channel dimension
         inputs = torch.cat((ctres, suv), dim=1)
 
-        optimizer.zeroes_grad()
-        outputs = model(inputs)
+        optimizer.zero_grad()
+        outputs = model(ctres)
         loss = criterion(outputs, label)
         loss.backward()
         optimizer.step()
