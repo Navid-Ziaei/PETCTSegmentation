@@ -1,10 +1,26 @@
 import nibabel as nib
 import matplotlib.pyplot as plt
 import os
+
+import numpy as np
 from matplotlib.animation import FuncAnimation
-
-
+from IPython.display import HTML
+from matplotlib.colors import Normalize
 def visualize_slices(file_id, slice_index, file_names_img, file_names_label, img_path, label_path):
+    """
+    Visualize specific slices of CTres, SUV, and Label images.
+
+    Parameters:
+    file_id (str): The identifier of the file to visualize.
+    slice_index (int): The index of the slice to visualize.
+    file_names_img (list): List of image file names.
+    file_names_label (list): List of label file names.
+    img_path (str): Path to the image files.
+    label_path (str): Path to the label files.
+
+    Returns:
+    tuple: A tuple containing the CTres data, SUV data, and label data.
+    """
     ctres_file = None
     suv_file = None
     label_file = None
@@ -41,7 +57,6 @@ def visualize_slices(file_id, slice_index, file_names_img, file_names_label, img
         plt.title('CTres Slice')
         plt.axis('off')
 
-
         # Plot the SUV slice
         plt.subplot(1, 3, 2)
         plt.imshow(suv_data[:, :, slice_index], cmap='hot')
@@ -60,8 +75,21 @@ def visualize_slices(file_id, slice_index, file_names_img, file_names_label, img
 
     return ctres_data, suv_data, label_data
 
-
 def animate_slices(file_id, file_names_img, file_names_label, img_path, label_path, save_path=None):
+    """
+    Animate slices of CTres, SUV, and Label images.
+
+    Parameters:
+    file_id (str): The identifier of the file to animate.
+    file_names_img (list): List of image file names.
+    file_names_label (list): List of label file names.
+    img_path (str): Path to the image files.
+    label_path (str): Path to the label files.
+    save_path (str, optional): Path to save the animation. Defaults to None.
+
+    Returns:
+    HTML: HTML object to display the animation in Jupyter Notebook.
+    """
     ctres_file = None
     suv_file = None
     label_file = None
@@ -95,17 +123,19 @@ def animate_slices(file_id, file_names_img, file_names_label, img_path, label_pa
         num_slices = ctres_data.shape[2]
 
         # Create a figure and axis for the animation
-        fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+        fig, axes = plt.subplots(1, 3, figsize=(10, 4))
 
         # Initialize the images
-        ctres_img_plot = axes[0].imshow(ctres_data[:, :, 0], cmap='gray')
-        suv_img_plot = axes[1].imshow(suv_data[:, :, 0], cmap='hot')
-        label_img_plot = axes[2].imshow(label_data[:, :, 0], cmap='viridis', alpha=0.5)
+        ctres_img_plot = axes[0].imshow(ctres_data[:, :, 50], cmap='gray', norm=Normalize())
+        suv_img_plot = axes[1].imshow(suv_data[:, :, 50], cmap='hot', norm=Normalize())
+        label_img_plot = axes[2].imshow(label_data[:, :, 50], cmap='viridis', alpha=0.5, norm=Normalize())
 
         # Set titles for the subplots
         axes[0].set_title('CTres Slice')
         axes[1].set_title('SUV Slice')
         axes[2].set_title('Label Mask')
+
+        plt.tight_layout()
 
         # Turn off axis for all subplots
         for ax in axes:
@@ -113,9 +143,16 @@ def animate_slices(file_id, file_names_img, file_names_label, img_path, label_pa
 
         # Update function for the animation
         def update(slice_index):
+            # Update the color range for each slice
             ctres_img_plot.set_array(ctres_data[:, :, slice_index])
+            ctres_img_plot.set_norm(Normalize(vmin=np.min(ctres_data[:, :, slice_index]), vmax=np.max(ctres_data[:, :, slice_index])))
+
             suv_img_plot.set_array(suv_data[:, :, slice_index])
+            suv_img_plot.set_norm(Normalize(vmin=np.min(suv_data[:, :, slice_index]), vmax=np.max(suv_data[:, :, slice_index])))
+
             label_img_plot.set_array(label_data[:, :, slice_index])
+            label_img_plot.set_norm(Normalize(vmin=np.min(label_data[:, :, slice_index]), vmax=np.max(label_data[:, :, slice_index])))
+
             return ctres_img_plot, suv_img_plot, label_img_plot
 
         # Create the animation
@@ -125,6 +162,9 @@ def animate_slices(file_id, file_names_img, file_names_label, img_path, label_pa
             # Save the animation
             ani.save(save_path, writer='imagemagick')
 
-        plt.show()
+        # Display the animation in Jupyter Notebook
+        return HTML(ani.to_jshtml())
+
     else:
         print(f"Files containing '{file_id}' not found.")
+        return None

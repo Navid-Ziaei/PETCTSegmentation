@@ -1,0 +1,3 @@
+raw_dataset_path: "D:/Datasets/PetCT/"
+preprocessed_dataset_path: "D:/Datasets/PetCT_preprocessed/"
+model_path: "D:/projects/PETCTSegmentation/saved_model/"

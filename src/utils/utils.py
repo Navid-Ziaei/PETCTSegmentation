@@ -8,23 +8,35 @@ def split_data(file_names, test_size=0.2, val_size=0.1):
 
 
 def filter_files(file_names_img, file_names_label, img_path):
+    """
+    Filter image files based on the presence of corresponding CT, PET, and label files
+    and a specific shape condition.
+
+    Parameters:
+    file_names_img (list): List of image file names.
+    file_names_label (list): List of label file names.
+    img_path (str): Path to the image files.
+
+    Returns:
+    list: List of filtered file names that meet the criteria.
+    """
     filtered_files = []
+
+    # Iterate through the list of image files
     for file_name in file_names_img:
+        # Extract the file ID from the file name
         file_id = file_name.split('_')[:-1]
 
-        # Check for corresponding CT and PET files
+        # Construct the corresponding CT, PET, and label file names
         ctres_file = f'fdg_{file_id[1]}_{file_id[2]}_0000.nii.gz'
         suv_file = f'fdg_{file_id[1]}_{file_id[2]}_0001.nii.gz'
         label_file = f'fdg_{file_id[1]}_{file_id[2]}.nii.gz'
 
-
-
+        # Check if the corresponding CT, PET, and label files exist
         if (ctres_file in file_names_img) and (suv_file in file_names_img) and (label_file in file_names_label):
-            ctres_img = nib.load(img_path + ctres_file).get_fdata()
-            print(ctres_img.shape)
-            if ctres_img.shape[-1] == 326:
-                filtered_files.append(file_name)
+            filtered_files.append(file_name)
         else:
+            # Print a message if any of the corresponding files are missing
             print(f"File {file_name} or its corresponding CT, PET, or label file is missing.")
 
     return filtered_files

@@ -1,6 +1,6 @@
 import torch.nn as nn
-import torch.nn.functional as F
 import torch
+
 
 class UNet(nn.Module):
     def __init__(self):
@@ -24,3 +24,45 @@ class UNet(nn.Module):
         x = self.encoder(x)
         x = self.decoder(x)
         return x
+
+    def fit(self, train_loader, val_loader, optimizer, criterion, num_epochs):
+        for epoch in range(num_epochs):
+            self.train()
+            running_loss = 0.0
+            for batch in train_loader:
+                ctres = batch['ctres'].unsqueeze(1)  # Add channel dimension
+                suv = batch['suv'].unsqueeze(1)  # Add channel dimension
+                label = batch['label']
+
+                # Concatenate CTres and SUV images along the channel dimension
+                inputs = torch.cat((ctres, suv), dim=1)
+
+                optimizer.zero_grad()
+                outputs = self(ctres)
+                loss = criterion(outputs, label)
+                loss.backward()
+                optimizer.step()
+
+                running_loss += loss.item()
+
+            epoch_loss = running_loss / len(train_loader)
+            print(f'Epoch {epoch + 1}/{num_epochs}, Loss: {epoch_loss:.4f}')
+
+            self.eval()
+            val_loss = 0.0
+            with torch.no_grad():
+                for batch in val_loader:
+                    ctres = batch['ctres'].unsqueeze(1)  # Add channel dimension
+                    suv = batch['suv'].unsqueeze(1)  # Add channel dimension
+                    label = batch['label']
+
+                    # Concatenate CTres and SUV images along the channel dimension
+                    inputs = torch.cat((ctres, suv), dim=1)
+
+                    outputs = self(inputs)
+                    loss = criterion(outputs, label)
+
+                    val_loss += loss.item()
+
+            val_epoch_loss = val_loss / len(val_loader)
+            print(f'Validation Loss: {val_epoch_loss:.4f}')

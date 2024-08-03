@@ -5,21 +5,23 @@ import os
 
 class Paths:
     def __init__(self, settings):
-        self.path_result = []
-        self.path_model = []
-        self.path_dataset = None
-        self.path_preprocessed_dataset = None
+        self.result_path = None
+        self.model_path = None
+        self.raw_dataset_path = None
+        self.preprocessed_dataset_path = None
         self.base_path = None
         self.debug_mode = settings.debug_mode
 
     def load_device_paths(self):
         """ working directory """
-        working_folder = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        working_folder = os.path.dirname(os.path.dirname(working_folder))
+
+        working_folder = Path(__file__).resolve().parents[2]
+        config_folder = working_folder / 'configs'
+
 
         """ loading device path from the yaml file """
         try:
-            with open(working_folder + "/configs/device_path.yaml", "r") as file:
+            with open(config_folder / "device_path.yaml", "r") as file:
                 device = yaml.safe_load(file)
         except Exception as e:
             raise Exception('Could not load device_path.yaml from the working directory!') from e
@@ -33,11 +35,10 @@ class Paths:
         self.create_paths()
 
     def create_paths(self):
-        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))  # get the working directory path
-        dir_path = os.path.dirname(os.path.dirname(dir_path))
+        dir_path = Path(__file__).resolve().parents[2]
 
-        self.base_path = dir_path + '/results'
-        results_base_path = f'{self.base_path}/{self.path_dataset}/'
+        self.base_path = dir_path / 'results'
+        results_base_path = f'{self.base_path}/{self.result_path}/'
 
         if self.debug_mode is False:
             self.folder_name = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
@@ -48,5 +49,5 @@ class Paths:
         model_path = os.path.join(results_base_path + 'saved_model/')
         Path(results_base_path).mkdir(parents=True, exist_ok=True)
         Path(model_path).mkdir(parents=True, exist_ok=True)
-        self.path_model.append(model_path)
-        self.path_result.append(results_base_path)
+        self.model_path = model_path
+        self.result_path = results_base_path
