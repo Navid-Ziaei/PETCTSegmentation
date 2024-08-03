@@ -5,7 +5,7 @@ model: "unet"
 
 # Training LDGD
 load_trained_model : False
-batch_size : 100
+batch_size : 4
 num_epochs : 100
 test_size: 0.2
 validation_size: 0.1
