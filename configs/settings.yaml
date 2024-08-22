@@ -1,6 +1,8 @@
 # Dataset name to use : "pilot01" "clear"
 dataset: "pet_ct"
-data_type: "fdg" # "psma" "fdg" "both"
+data_type: "psma" # "psma" "fdg" "both"
+modality: "pet" # "ct", "pet" , "both"
+
 use_negative_samples : False
 load_preprocessed_data : False
 

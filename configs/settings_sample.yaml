@@ -1,7 +1,10 @@
+# Dataset name to use : "pilot01" "clear"
 dataset: "pet_ct"
 data_type: "psma" # "psma" "fdg" "both"
+modality: "pet" # "ct", "pet" , "both"
+
 use_negative_samples : False
-load_preprocessed_data : False
+load_preprocessed_data : True
 
 slice_spacing: 3
 slice_overlap: 0
@@ -11,11 +14,12 @@ model: "unet"
 
 # Training LDGD
 load_trained_model : False
-batch_size : 4
-num_epochs : 5
+batch_size : 8
+num_epochs : 40
 test_size: 0.2
 validation_size: 0.1
 learning_rate: 0.0001
 
 # Enable or disable debug mode
 debug_mode: true
+

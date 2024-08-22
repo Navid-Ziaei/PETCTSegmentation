@@ -44,11 +44,11 @@ class DataPreprocessor:
         if self.settings.load_preprocessed_data is True:
             pass
         else:
-            self.clear_train_test_val_folders()
+            # self.clear_train_test_val_folders()
             self.train_test_split()
 
             for file_name in tqdm(self.file_name_list):
-                ctres_img, suv_img, label_img = load_data_by_file_name(file_name, file_names_img,
+                ctres_img, suv_img, label_img, *_ = load_data_by_file_name(file_name, file_names_img,
                                                                        file_names_label, img_path, label_path)
 
                 ctres_img, suv_img, label_img = self.apply_preprocessing(data_ct=ctres_img,

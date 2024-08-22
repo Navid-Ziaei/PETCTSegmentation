@@ -9,8 +9,9 @@ from src.evaluation.metrics import compute_metrics, false_neg_pix, false_pos_pix
 
 
 class UNet(nn.Module):
-    def __init__(self, n_channels):
+    def __init__(self, n_channels, modality='pet'):
         super(UNet, self).__init__()
+        self.modality = modality
         self.encoder = nn.Sequential(
             nn.Conv2d(n_channels, 64, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
@@ -56,10 +57,17 @@ class UNet(nn.Module):
                 label = batch['label'].to(device)
                 label = label.permute(0, 3, 1, 2)
 
-                inputs = torch.cat((ctres, suv), dim=1)
+                if self.modality == 'both':
+                    inputs = torch.cat((ctres, suv), dim=1)
+                elif self.modality == 'ct':
+                    inputs = ctres
+                elif self.modality == 'pet':
+                    inputs = suv
+                else:
+                    raise ValueError("the data modality is not defined")
 
                 optimizer.zero_grad()
-                outputs = self(ctres)
+                outputs = self(inputs)
 
                 loss = criterion(outputs, label.float())
                 loss.backward()
@@ -98,9 +106,16 @@ class UNet(nn.Module):
                     label = batch['label'].to(device)
                     label = label.permute(0, 3, 1, 2)
 
-                    inputs = torch.cat((ctres, suv), dim=1)
+                    if self.modality == 'both':
+                        inputs = torch.cat((ctres, suv), dim=1)
+                    elif self.modality == 'ct':
+                        inputs = ctres
+                    elif self.modality == 'pet':
+                        inputs = suv
+                    else:
+                        raise ValueError("the data modality is not defined")
 
-                    outputs = self(ctres)
+                    outputs = self(inputs)
                     loss = criterion(outputs, label.float())
 
                     val_loss += loss.item()
@@ -135,9 +150,16 @@ class UNet(nn.Module):
                 file_name = batch['file_name']
 
                 # Concatenate CTres and SUV images along the channel dimension
-                inputs = torch.cat((ctres, suv), dim=1)
+                if self.modality == 'both':
+                    inputs = torch.cat((ctres, suv), dim=1)
+                elif self.modality == 'ct':
+                    inputs = ctres
+                elif self.modality == 'pet':
+                    inputs = suv
+                else:
+                    raise ValueError("the data modality is not defined")
 
-                outputs = self(ctres)
+                outputs = self(inputs)
                 for i in range(len(file_name)):
                     output_dict[file_name[i]] = outputs[i]
                     gt_dict[file_name[i]] = label[i]

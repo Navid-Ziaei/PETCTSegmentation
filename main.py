@@ -3,8 +3,9 @@ import torch
 from torch.utils.data import DataLoader
 from torch import nn, optim
 
+from src.model.utils import BCEDiceLoss
 from src.visualization import plot_training_history, plot_results
-from src.data import MedicalDataset, DataPreprocessor
+from src.data import MedicalDataset, DataPreprocessor, generate_meta_data
 from src.model.unet_model import UNet
 from src.settings import Settings, Paths
 
@@ -40,10 +41,10 @@ test_loader = DataLoader(dataset_test, batch_size=settings.batch_size, shuffle=F
 
 
 # Instantiate the saved_model, define the loss function and the optimizer
-# criterion = nn.CrossEntropyLoss()
 criterion = nn.BCEWithLogitsLoss()
+# criterion = BCEDiceLoss()
 
-model = UNet(n_channels=settings.slice_spacing).to(device)
+model = UNet(n_channels=settings.slice_spacing, modality=settings.modality).to(device)
 optimizer = optim.Adam(model.parameters(), lr=settings.learning_rate)
 
 history = model.fit(train_loader, val_loader, optimizer, criterion, num_epochs=settings.num_epochs, device=device)

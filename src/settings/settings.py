@@ -27,6 +27,7 @@ class Settings:
         self.slice_spacing = 3
         self.slice_overlap = 0
         self.load_preprocessed_data = False
+        self.modality = "pet"
 
 
     def load_settings(self):
