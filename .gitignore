@@ -8,6 +8,7 @@ result/
 
 device_path.yaml
 settings.yaml
+
 configs/device_path.yaml
 configs/settings.yaml
 
