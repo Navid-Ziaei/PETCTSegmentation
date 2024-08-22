@@ -24,7 +24,7 @@ generate_meta_data(paths)
 # preprocess data
 preprocessing_configs = {
     'scale_ct': {'mode': "normalization", 'min': -1500, 'max': 3500},
-    'scale_pett': {'mode': "normalization", 'min': 0, 'max': 70},
+    'scale_pett': {'mode': "normalization", 'min': 0, 'max': 120},
     'resample_image': {'target_shape': (400, 400)}
 }
 data_preprocessor = DataPreprocessor(paths, settings)
