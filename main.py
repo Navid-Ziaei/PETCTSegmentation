@@ -18,7 +18,7 @@ paths = Paths(settings=settings)
 paths.load_device_paths()
 
 # Just run this for the first time
-# generate_meta_data(paths)
+generate_meta_data(paths)
 
 # preprocess data
 preprocessing_configs = {
