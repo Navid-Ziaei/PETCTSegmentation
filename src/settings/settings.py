@@ -22,6 +22,11 @@ class Settings:
         self.num_epochs = 10
         self.validation_size = 0.1
         self.learning_rate = 0.001
+        self.data_type = 'psma'
+        self.use_negative_samples = False
+        self.slice_spacing = 3
+        self.slice_overlap = 0
+        self.load_preprocessed_data = False
 
 
     def load_settings(self):

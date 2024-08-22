@@ -38,7 +38,7 @@ class Paths:
         dir_path = Path(__file__).resolve().parents[2]
 
         self.base_path = dir_path / 'results'
-        results_base_path = f'{self.base_path}/{self.result_path}/'
+        results_base_path = f'{self.base_path}/'
 
         if self.debug_mode is False:
             self.folder_name = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')

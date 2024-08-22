@@ -20,6 +20,8 @@ model_path: \"D:/path_to_working_directory/saved_model/\"
 The \`raw_dataset_path\` should contain two folders with the exact naming:
 - \`imagesTr\`: Contains PET and CT images with suffix \`*_0000.nii.gz\` and \`*_0001.nii.gz\`.
 - \`labelsTr\`: Contains GT \`*.nii.gz\`.
+- fdg_metadata.csv
+- psma_metadata.csv
 
 ### Settings Configuration
 
