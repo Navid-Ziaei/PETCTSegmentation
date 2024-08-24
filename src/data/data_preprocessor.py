@@ -45,6 +45,7 @@ class DataPreprocessor:
             pass
         else:
             # self.clear_train_test_val_folders()
+            self.create_train_test_val_folders()
             self.train_test_split()
 
             for file_name in tqdm(self.file_name_list):
@@ -90,11 +91,14 @@ class DataPreprocessor:
         """
         # save the data in the appropriate folder
         if file_id in self.train_files:
-            save_path = os.path.join(self.preprocessed_dataset_path, 'train')
+            save_path = os.path.join(self.preprocessed_dataset_path, self.settings.data_type)
+            save_path = os.path.join(save_path, 'train')
         elif file_id in self.val_files:
-            save_path = os.path.join(self.preprocessed_dataset_path, 'val')
+            save_path = os.path.join(self.preprocessed_dataset_path, self.settings.data_type)
+            save_path = os.path.join(save_path, 'val')
         elif file_id in self.test_files:
-            save_path = os.path.join(self.preprocessed_dataset_path, 'test')
+            save_path = os.path.join(self.preprocessed_dataset_path, self.settings.data_type)
+            save_path = os.path.join(save_path, 'test')
         else:
             save_path = None
 
