@@ -25,7 +25,7 @@ paths.load_device_paths()
 preprocessing_configs = {
     'scale_ct': {'mode': "normalization", 'min': -1500, 'max': 3500},
     'scale_pett': {'mode': "normalization", 'min': 0, 'max': 120},
-    'resample_image': {'target_shape': (400, 400)}
+    'resample_image': {'target_shape': (200, 200)}
 }
 data_preprocessor = DataPreprocessor(paths, settings)
 data_preprocessor.preprocess(preprocessing_configs)
