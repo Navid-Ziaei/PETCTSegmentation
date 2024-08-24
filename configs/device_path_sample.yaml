@@ -1,3 +1,3 @@
-raw_dataset_path: "D:/Datasets/PetCT/"
-preprocessed_dataset_path: "D:/Datasets/PetCT_preprocessed/"
-model_path: "D:/projects/PETCTSegmentation/saved_model/"
+raw_dataset_path: "/media/nziaei/0884BA9484BA83AA/Datasets/PetCT/raw/"
+preprocessed_dataset_path: "/media/nziaei/0884BA9484BA83AA/Datasets/PetCT/preprocessed/"
+model_path: "/media/nziaei/0884BA9484BA83AA/projects/PETCTSegmentation/"
