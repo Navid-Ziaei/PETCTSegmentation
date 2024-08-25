@@ -41,24 +41,13 @@ def download_fdg_by_id(fid, data_info_fdg, raw_dataset_path):
 
 def download_psma_by_id(fid, data_info_psma, raw_dataset_path):
     file_to_download = data_info_psma[data_info_psma['Subject ID'] == 'PSMA_' + fid]
-    if len(file_to_download['File Location']) == 0:
-        print("No file found in PSMA dataset")
-    else:
-        print(f"Found {len(file_to_download['File Location'])} files in PSMA dataset")
-    for file_name, modality in zip(file_to_download['File Location'], file_to_download['Modality']):
 
-        file_loc = file_name.split('/')
-        if modality in ['CT']:
-            f_name = 'psma_' + file_loc[2].split('_')[1] + '_' + file_loc[3] + '_0000.nii.gz'
-            f_path = raw_dataset_path + 'imagesTr/'
-        elif modality in ['PT']:
-            f_name = 'psma_' + file_loc[2].split('_')[1] + '_' + file_loc[3] + '_0001.nii.gz'
-            f_path = raw_dataset_path + 'imagesTr/'
-        elif modality in ['SEG']:
-            f_name = 'psma_' + file_loc[2].split('_')[1] + '_' + file_loc[3] + '.nii.gz'
-            f_path = raw_dataset_path + 'labelsTr/'
-        else:
-            raise ValueError("No modality found in the FDG dataset")
+
+    for file_name, file_date in zip(file_to_download['Subject ID'], file_to_download['Study Date']):
+
+        file_loc = file_name.split('_')[1]
+        f_name = 'psma_' + file_loc + '_' + file_date + '_0000.nii.gz'
+        f_path = raw_dataset_path + 'imagesTr/'
 
         if os.path.exists(f_path + f_name):
             pass
@@ -68,6 +57,21 @@ def download_psma_by_id(fid, data_info_psma, raw_dataset_path):
             urllib.request.urlretrieve(
                 f"https://syncandshare.lrz.de/dl/fiCJ6mQcjefMTQdKJsBSys/imagesTr/{add_f_name}",
                 filename=f_path + f_name)
+
+        f_name = 'psma_' + file_loc + '_' + file_date + '_0001.nii.gz'
+        f_path = raw_dataset_path + 'imagesTr/'
+
+        if os.path.exists(f_path + f_name):
+            pass
+        else:
+            add_f_name = f_name.replace(' ', '%20')
+            print(f"Downloading {f_name} ...")
+            urllib.request.urlretrieve(
+                f"https://syncandshare.lrz.de/dl/fiCJ6mQcjefMTQdKJsBSys/imagesTr/{add_f_name}",
+                filename=f_path + f_name)
+
+
+
 
 def load_data_by_file_name(file_name, file_names_img, file_names_label, img_path, label_path):
     ctres_file = None
