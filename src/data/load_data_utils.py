@@ -69,10 +69,6 @@ def download_psma_by_id(fid, data_info_psma, raw_dataset_path):
             urllib.request.urlretrieve(
                 f"https://syncandshare.lrz.de/dl/fiCJ6mQcjefMTQdKJsBSys/imagesTr/{add_f_name}",
                 filename=f_path + f_name)
-
-
-
-
 def load_data_by_file_name(file_name, file_names_img, file_names_label, img_path, label_path):
     ctres_file = None
     suv_file = None
@@ -157,23 +153,27 @@ def generate_meta_data(paths):
 
     file_names_img = os.listdir(img_path)
     file_names_label = os.listdir(label_path)
+
     file_ids = list(np.unique([file_name.split('_')[1] for file_name in file_names_img]))
     file_names = list(np.unique(['_'.join(f_name.split('_')[:-1]) for f_name in file_names_img]))
 
     data_info_list = []
     for file_name in tqdm(file_names):
-        ctres_data, suv_data, label_data, voxel_vol = load_data_by_file_name(file_name, file_names_img,
-                                                                             file_names_label, img_path, label_path)
-        slice_list, tumor_size_list, biggest_tumor = get_slices_with_tumor(label_data)
+        try:
+            ctres_data, suv_data, label_data, voxel_vol = load_data_by_file_name(file_name, file_names_img,
+                                                                                 file_names_label, img_path, label_path)
+            slice_list, tumor_size_list, biggest_tumor = get_slices_with_tumor(label_data)
 
-        data_info = {'file name': file_name,
-                     'data type': file_name.split('_')[0],
-                     'num of slices': ctres_data.shape[-1],
-                     'slice_size': ctres_data.shape[:-1],
-                     'voxel volume': voxel_vol,
-                     'num_tumor_slices': len(slice_list),
-                     'tumor_slices': str(slice_list)}
-        data_info_list.append(data_info)
+            data_info = {'file name': file_name,
+                         'data type': file_name.split('_')[0],
+                         'num of slices': ctres_data.shape[-1],
+                         'slice_size': ctres_data.shape[:-1],
+                         'voxel volume': voxel_vol,
+                         'num_tumor_slices': len(slice_list),
+                         'tumor_slices': str(slice_list)}
+            data_info_list.append(data_info)
+        except:
+            print(f"Error in loading {file_name}")
 
     df_info = pd.DataFrame(data_info_list)
     df_info.to_csv("meta data/meta_data.csv", index=False)

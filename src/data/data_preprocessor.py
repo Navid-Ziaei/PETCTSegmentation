@@ -44,7 +44,7 @@ class DataPreprocessor:
         if self.settings.load_preprocessed_data is True:
             pass
         else:
-            # self.clear_train_test_val_folders()
+            self.clear_train_test_val_folders()
             self.create_train_test_val_folders()
             self.train_test_split()
 
@@ -167,8 +167,19 @@ class DataPreprocessor:
                 self.save_npy(label_slice, label_file)
 
     def split_data(self, file_list):
-        train_files, test_files = train_test_split(file_list, test_size=self.settings.test_size)
-        train_files, val_files = train_test_split(train_files, test_size=self.settings.validation_size)
+
+        if os.path.exists(self.preprocessed_dataset_path + self.settings.data_type + '/train_files.npy') is False:
+            train_files, test_files = train_test_split(file_list, test_size=self.settings.test_size, random_state=42)
+            train_files, val_files = train_test_split(train_files, test_size=self.settings.validation_size,
+                                                      random_state=42)
+            np.save(self.preprocessed_dataset_path + self.settings.data_type + '/train_files.npy', train_files)
+            np.save(self.preprocessed_dataset_path + self.settings.data_type + '/val_files.npy', val_files)
+            np.save(self.preprocessed_dataset_path + self.settings.data_type + '/test_files.npy', test_files)
+        else:
+            train_files = np.load(self.preprocessed_dataset_path + self.settings.data_type + '/train_files.npy')
+            val_files = np.load(self.preprocessed_dataset_path + self.settings.data_type + '/val_files.npy')
+            test_files = np.load(self.preprocessed_dataset_path + self.settings.data_type + '/test_files.npy')
+
         return train_files, val_files, test_files
 
     def pad_slices(self, image_slices, target_slices):
@@ -190,6 +201,11 @@ class DataPreprocessor:
 
         file_names = os.listdir(img_path)
 
+        """file_path = "C:/Users/Navid Ziaei/Downloads/Telegram Desktop/file_list.txt"
+        with open(file_path) as f:
+            file_names_img = f.readlines(-1)
+        file_names = [f.replace('\n', '') for f in file_names_img]"""
+
         file_names_ct = ['_'.join(file_name.split('_')[:-1]) for file_name in file_names if '_0000' in file_name]
         file_names_pet = ['_'.join(file_name.split('_')[:-1]) for file_name in file_names if '_0001' in file_name]
 
@@ -208,7 +224,9 @@ class DataPreprocessor:
             download_psma_by_id(file_name.split('_')[1], data_info_psma, self.raw_dataset_path)
             file_names_pet.append(file_name)
 
-        print(f"Number of total PSMA patients: {len(data_info_psma['Subject ID'].unique())}")
+        psma_file_names = list(np.unique([f"{sub_id}_{date}" for sub_id, date in
+                           zip(data_info_psma['Subject ID'], data_info_psma['Study Date'])]))
+        print(f"Number of total PSMA patients: {len(psma_file_names)}")
         print(f"Number of total FDG patients: {len(data_info_fdg['Subject ID'].unique())}")
 
         loaded_file_names = file_names_ct
@@ -216,17 +234,20 @@ class DataPreprocessor:
         fdg_unique_id = data_info_fdg['Subject ID'].unique()
         psma_unique_id = data_info_psma['Subject ID'].unique()
 
-        laded_psma_files = [fid for fid in loaded_file_names if 'PETCT_' + fid.split('_')[1] not in fdg_unique_id]
-        laded_fdg_files = [fid for fid in loaded_file_names if 'PSMA_' + fid.split('_')[1] not in psma_unique_id]
+        loaded_psma_files = [fid for fid in loaded_file_names if 'PETCT_' + fid.split('_')[1] not in fdg_unique_id]
+        loaded_fdg_files = [fid for fid in loaded_file_names if 'PSMA_' + fid.split('_')[1] not in psma_unique_id]
 
-        print(f"Number of loaded PSMA patients: {len(laded_psma_files)}")
-        print(f"Number of loaded FDG patients: {len(laded_fdg_files)}")
+        loaded_psma_files = list(np.unique(loaded_psma_files))
+        loaded_fdg_files = list(np.unique(loaded_fdg_files))
+
+        print(f"Number of loaded PSMA patients: {len(loaded_psma_files)}")
+        print(f"Number of loaded FDG patients: {len(loaded_fdg_files)}")
 
         print(f"=====================================================================================")
-        self.loaded_fdg_files = laded_fdg_files
-        self.loaded_psma_files = laded_psma_files
+        self.loaded_fdg_files = loaded_fdg_files
+        self.loaded_psma_files = loaded_psma_files
 
-        return laded_fdg_files, laded_psma_files
+        return loaded_fdg_files, loaded_psma_files
 
     def create_train_test_val_folders(self):
         if os.path.exists(self.preprocessed_dataset_path + self.settings.data_type + '/train/images/') is False:
