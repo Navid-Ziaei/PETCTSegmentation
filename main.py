@@ -22,13 +22,8 @@ paths.load_device_paths()
 # generate_meta_data(paths)
 
 # preprocess data
-preprocessing_configs = {
-    'scale_ct': {'mode': "normalization", 'min': -1500, 'max': 3500},
-    'scale_pett': {'mode': "normalization", 'min': 0, 'max': 120},
-    'resample_image': {'target_shape': (200, 200)}
-}
 data_preprocessor = DataPreprocessor(paths, settings)
-data_preprocessor.preprocess(preprocessing_configs)
+data_preprocessor.preprocess(settings.preprocessing_configs)
 
 # Create dataset
 dataset_train = MedicalDataset(paths, settings, data_part='train')
@@ -49,7 +44,7 @@ optimizer = optim.Adam(model.parameters(), lr=settings.learning_rate)
 
 history = model.fit(train_loader, val_loader, optimizer, criterion, num_epochs=settings.num_epochs, device=device)
 plot_training_history(history, save_path=paths.result_path + 'training_history.png')
-model.save_model(paths.model_path + 'model.h5')
+model.save_model(paths.model_path + 'model.pt')
 
 df_results = model.evaluate(test_loader, device, criterion)
 df_results.to_csv(paths.result_path + "TestResults.csv")

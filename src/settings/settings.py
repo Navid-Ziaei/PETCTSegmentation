@@ -28,9 +28,9 @@ class Settings:
         self.slice_overlap = 0
         self.load_preprocessed_data = False
         self.modality = "pet"
+        self.preprocessing_configs = None
 
-
-    def load_settings(self):
+    def load_settings(self, config_folder=None):
         """
         This function loads the YAML files for settings and network settings from the working directory and
         creates a Settings object based on the fields in the YAML file. It also loads the local path of the datasets
@@ -42,12 +42,13 @@ class Settings:
         """
 
         """ working directory """
-        working_folder = Path(__file__).resolve().parents[2]
-        config_folder = working_folder / 'configs'
+        if config_folder is None:
+            working_folder = Path(__file__).resolve().parents[2]
+            config_folder = str(working_folder) + '/configs/'
 
         """ loading settings from the yaml file """
         try:
-            with open(config_folder / "settings.yaml", "r") as file:
+            with open(config_folder + "settings.yaml", "r") as file:
                 settings_yaml = yaml.safe_load(file)
         except Exception as e:
             raise Exception('Could not load settings.yaml from the working directory!') from e
@@ -65,7 +66,7 @@ class Settings:
     @dataset.setter
     def dataset(self, dataset_name):
         if isinstance(dataset_name, str) and dataset_name in self.__supported_dataset:
-            print(f"\n Selected Dataset is : {dataset_name}")
+            print(f"Selected Dataset is : {dataset_name} \n")
             self.__dataset = dataset_name
         else:
             raise ValueError(f"dataset should be selected from supported datasets: {self.__supported_dataset}")
@@ -77,7 +78,7 @@ class Settings:
     @model.setter
     def model(self, model_name):
         if isinstance(model_name, str) and model_name in self.__supported_models:
-            print(f"\n Selected Dataset is : {model_name}")
+            print(f"Selected Model is : {model_name} \n")
             self.__model = model_name
         else:
             raise ValueError(f"dataset should be selected from supported datasets: {self.__supported_models}")
@@ -114,6 +115,3 @@ class Settings:
             self.__debug_mode = value
         else:
             raise ValueError("The v should be boolean")
-
-
-

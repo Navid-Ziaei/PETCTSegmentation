@@ -34,19 +34,20 @@ class DataPreprocessor:
 
         return data_ct, data_pet, labels
 
-    def preprocess(self, preprocessing_configs):
+    def preprocess(self, preprocessing_configs, mode='train'):
         img_path = os.path.join(self.raw_dataset_path, 'imagesTr/')
         label_path = os.path.join(self.raw_dataset_path, 'labelsTr/')
 
         file_names_img = list(np.unique(os.listdir(img_path)))
         file_names_label = list(np.unique(os.listdir(label_path)))
 
-        if self.settings.load_preprocessed_data is True:
+        if self.settings.load_preprocessed_data is True and mode == 'train':
             pass
         else:
             self.clear_train_test_val_folders()
             self.create_train_test_val_folders()
-            self.train_test_split()
+            if mode == 'train':
+                self.train_test_split()
 
             for file_name in tqdm(self.file_name_list):
                 ctres_img, suv_img, label_img, *_ = load_data_by_file_name(file_name, file_names_img,
@@ -59,25 +60,6 @@ class DataPreprocessor:
 
                 self.prepare_data(file_name, ctres_img, suv_img, label_img, file_name=file_name)
 
-                """
-                ctres_npy = os.path.join(self.preprocessed_dataset_path, f'{file_id}_ctres.npy')
-                suv_npy = os.path.join(self.preprocessed_dataset_path, f'{file_id}_suv.npy')
-                label_npy = os.path.join(self.preprocessed_dataset_path, f'{file_id}_label.npy')
-                
-                if os.path.exists(ctres_npy) and os.path.exists(suv_npy) and os.path.exists(label_npy):
-                    print(f"Preprocessed files for {file_id} already exist. Skipping.")
-                else:
-                    ctres_img = self.load_nifti(ctres_file)
-                    suv_img = self.load_nifti(suv_file)
-                    label_img = self.load_nifti(label_file)
-    
-                    ctres_img, suv_img = self.apply_preprocessing(data_ct=ctres_img,
-                                                                  data_pet=suv_img, **preprocessing_configs)
-    
-                    self.save_npy(ctres_img, ctres_npy)
-                    self.save_npy(suv_img, suv_npy)
-                    self.save_npy(label_img, label_npy)
-                """
 
     def prepare_data(self, file_id, ctres_img, suv_img, label_img, file_name):
         """
@@ -90,23 +72,28 @@ class DataPreprocessor:
         :return:
         """
         # save the data in the appropriate folder
-        if file_id in self.train_files:
-            save_path = os.path.join(self.preprocessed_dataset_path, self.settings.data_type)
-            save_path = os.path.join(save_path, 'train')
-        elif file_id in self.val_files:
-            save_path = os.path.join(self.preprocessed_dataset_path, self.settings.data_type)
-            save_path = os.path.join(save_path, 'val')
-        elif file_id in self.test_files:
+        if self.test_files is not None:
+            if file_id in self.train_files:
+                save_path = os.path.join(self.preprocessed_dataset_path, self.settings.data_type)
+                save_path = os.path.join(save_path, 'train')
+            elif file_id in self.val_files:
+                save_path = os.path.join(self.preprocessed_dataset_path, self.settings.data_type)
+                save_path = os.path.join(save_path, 'val')
+            elif file_id in self.test_files:
+                save_path = os.path.join(self.preprocessed_dataset_path, self.settings.data_type)
+                save_path = os.path.join(save_path, 'test')
+            else:
+                save_path = None
+        else:
             save_path = os.path.join(self.preprocessed_dataset_path, self.settings.data_type)
             save_path = os.path.join(save_path, 'test')
-        else:
-            save_path = None
 
         # The images are WxHxD where D is number of slices
         # Here we want to transform each image to M WxHxD1 images where MxD1=D
         # Also we have mode to have overlapping between slides
         if save_path is not None:
             self.split_slices(ctres_img, suv_img, label_img, file_name, file_id, save_path)
+
 
     def train_test_split(self):
         # select the data type
@@ -192,60 +179,76 @@ class DataPreprocessor:
             return padded_image
         return image_slices
 
-    def check_data(self):
-        data_info_fdg = pd.read_csv(self.raw_dataset_path + 'fdg_metadata.csv')
-        data_info_psma = pd.read_csv(self.raw_dataset_path + 'psma_metadata.csv')
+    def check_data(self, mode='train'):
+        if mode == 'train':
+            data_info_fdg = pd.read_csv(self.raw_dataset_path + 'fdg_metadata.csv')
+            data_info_psma = pd.read_csv(self.raw_dataset_path + 'psma_metadata.csv')
 
-        img_path = self.raw_dataset_path + 'imagesTr/'
-        label_path = self.raw_dataset_path + 'labelsTr/'
+            img_path = self.raw_dataset_path + 'imagesTr/'
+            label_path = self.raw_dataset_path + 'labelsTr/'
 
-        file_names = os.listdir(img_path)
+            file_names = os.listdir(img_path)
 
-        """file_path = "C:/Users/Navid Ziaei/Downloads/Telegram Desktop/file_list.txt"
-        with open(file_path) as f:
-            file_names_img = f.readlines(-1)
-        file_names = [f.replace('\n', '') for f in file_names_img]"""
+            file_names_ct = ['_'.join(file_name.split('_')[:-1]) for file_name in file_names if '_0000' in file_name]
+            file_names_pet = ['_'.join(file_name.split('_')[:-1]) for file_name in file_names if '_0001' in file_name]
 
-        file_names_ct = ['_'.join(file_name.split('_')[:-1]) for file_name in file_names if '_0000' in file_name]
-        file_names_pet = ['_'.join(file_name.split('_')[:-1]) for file_name in file_names if '_0001' in file_name]
+            mismatch1 = [file_name for file_name in file_names_pet if file_name not in file_names_ct]
+            mismatch2 = [file_name for file_name in file_names_ct if file_name not in file_names_pet]
 
-        mismatch1 = [file_name for file_name in file_names_pet if file_name not in file_names_ct]
-        mismatch2 = [file_name for file_name in file_names_ct if file_name not in file_names_pet]
+            print(f"Files present in PET not in CT: {mismatch1}")
+            print(f"Files present in CT not in PET: {mismatch2}")
 
-        print(f"Files present in PET not in CT: {mismatch1}")
-        print(f"Files present in CT not in PET: {mismatch2}")
+            for file_name in mismatch1:
+                download_fdg_by_id(file_name.split('_')[1], data_info_fdg, self.raw_dataset_path)
+                download_psma_by_id(file_name.split('_')[1], data_info_psma, self.raw_dataset_path)
+                file_names_ct.append(file_name)
+            for file_name in mismatch2:
+                download_fdg_by_id(file_name.split('_')[1], data_info_fdg, self.raw_dataset_path)
+                download_psma_by_id(file_name.split('_')[1], data_info_psma, self.raw_dataset_path)
+                file_names_pet.append(file_name)
 
-        for file_name in mismatch1:
-            download_fdg_by_id(file_name.split('_')[1], data_info_fdg, self.raw_dataset_path)
-            download_psma_by_id(file_name.split('_')[1], data_info_psma, self.raw_dataset_path)
-            file_names_ct.append(file_name)
-        for file_name in mismatch2:
-            download_fdg_by_id(file_name.split('_')[1], data_info_fdg, self.raw_dataset_path)
-            download_psma_by_id(file_name.split('_')[1], data_info_psma, self.raw_dataset_path)
-            file_names_pet.append(file_name)
+            psma_file_names = list(np.unique([f"{sub_id}_{date}" for sub_id, date in
+                                              zip(data_info_psma['Subject ID'], data_info_psma['Study Date'])]))
+            print(f"Number of total PSMA patients: {len(psma_file_names)}")
+            print(f"Number of total FDG patients: {len(data_info_fdg['Subject ID'].unique())}")
 
-        psma_file_names = list(np.unique([f"{sub_id}_{date}" for sub_id, date in
-                           zip(data_info_psma['Subject ID'], data_info_psma['Study Date'])]))
-        print(f"Number of total PSMA patients: {len(psma_file_names)}")
-        print(f"Number of total FDG patients: {len(data_info_fdg['Subject ID'].unique())}")
+            loaded_file_names = file_names_ct
 
-        loaded_file_names = file_names_ct
+            fdg_unique_id = data_info_fdg['Subject ID'].unique()
+            psma_unique_id = data_info_psma['Subject ID'].unique()
 
-        fdg_unique_id = data_info_fdg['Subject ID'].unique()
-        psma_unique_id = data_info_psma['Subject ID'].unique()
+            loaded_psma_files = [fid for fid in loaded_file_names if 'PETCT_' + fid.split('_')[1] not in fdg_unique_id]
+            loaded_fdg_files = [fid for fid in loaded_file_names if 'PSMA_' + fid.split('_')[1] not in psma_unique_id]
 
-        loaded_psma_files = [fid for fid in loaded_file_names if 'PETCT_' + fid.split('_')[1] not in fdg_unique_id]
-        loaded_fdg_files = [fid for fid in loaded_file_names if 'PSMA_' + fid.split('_')[1] not in psma_unique_id]
+            loaded_psma_files = list(np.unique(loaded_psma_files))
+            loaded_fdg_files = list(np.unique(loaded_fdg_files))
 
-        loaded_psma_files = list(np.unique(loaded_psma_files))
-        loaded_fdg_files = list(np.unique(loaded_fdg_files))
+            print(f"Number of loaded PSMA patients: {len(loaded_psma_files)}")
+            print(f"Number of loaded FDG patients: {len(loaded_fdg_files)}")
 
-        print(f"Number of loaded PSMA patients: {len(loaded_psma_files)}")
-        print(f"Number of loaded FDG patients: {len(loaded_fdg_files)}")
+            print(f"=====================================================================================")
+            self.loaded_fdg_files = loaded_fdg_files
+            self.loaded_psma_files = loaded_psma_files
 
-        print(f"=====================================================================================")
-        self.loaded_fdg_files = loaded_fdg_files
-        self.loaded_psma_files = loaded_psma_files
+        else:
+            ct_path = self.raw_dataset_path + 'images/ct/'
+            pet_path = self.raw_dataset_path + 'images/pet/'
+
+            file_names_ct = os.listdir(ct_path)
+            file_names_pet = os.listdir(ct_path)
+
+            file_names_ct = ['_'.join(file_name.split('_')[:-1]) for file_name in file_names_ct]
+            file_names_pet = ['_'.join(file_name.split('_')[:-1]) for file_name in file_names_pet]
+
+            mismatch1 = [file_name for file_name in file_names_pet if file_name not in file_names_ct]
+            mismatch2 = [file_name for file_name in file_names_ct if file_name not in file_names_pet]
+
+            print(f"Files present in PET not in CT: {mismatch1}")
+            print(f"Files present in CT not in PET: {mismatch2}")
+
+            print(f"Number of loaded files {len(file_names_pet)}")
+
+
 
         return loaded_fdg_files, loaded_psma_files
 
@@ -312,3 +315,5 @@ class DataPreprocessor:
             return (data_ct - np.mean(data_ct)) / np.std(data_ct)
         else:
             raise ValueError(f"Invalid mode: {kwargs['mode']}")
+
+

@@ -5,6 +5,11 @@ modality: "pet" # "ct", "pet" , "both"
 
 use_negative_samples : False
 load_preprocessed_data : True
+preprocessing_configs : {
+    'scale_ct': {'mode': "normalization", 'min': -1500, 'max': 3500},
+    'scale_pet': {'mode': "normalization", 'min': 0, 'max': 120},
+    'resample_image': {'target_shape': (200, 200)}
+}
 
 slice_spacing: 3
 slice_overlap: 0

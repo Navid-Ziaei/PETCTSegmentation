@@ -21,12 +21,21 @@ paths.load_device_paths()
 data_info_fdg = pd.read_csv(paths.raw_dataset_path + 'fdg_metadata.csv')
 data_info_psma = pd.read_csv(paths.raw_dataset_path + 'psma_metadata.csv')
 
-#file_names = [sub_id+'_'+sub_date for sub_id, sub_date in zip(data_info_psma['Subject ID'],data_info_psma['Study Date'])]
-file_names = [sub_id.split('_')[1] for sub_id in data_info_psma['Subject ID']]
+print("================= Download PSMA ========================")
+"""file_names = [sub_id.split('_')[1] for sub_id in data_info_psma['Subject ID']]
 
 for file_name in tqdm(file_names):
     try:
         download_psma_by_id(file_name, data_info_psma, paths.raw_dataset_path)
+    except:
+        print(f"File {file_name} not present in PSMA")"""
+
+print("================= Download FDG ========================")
+file_names = [sub_id.split('_')[1] for sub_id in data_info_fdg['Subject ID']]
+
+for file_name in tqdm(file_names):
+    try:
+        download_fdg_by_id(file_name, data_info_fdg, paths.raw_dataset_path)
     except:
         print(f"File {file_name} not present in FDG")
 

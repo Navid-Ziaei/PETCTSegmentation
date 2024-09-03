@@ -12,16 +12,17 @@ class Paths:
         self.base_path = None
         self.debug_mode = settings.debug_mode
 
-    def load_device_paths(self):
+    def load_device_paths(self, config_folder=None):
         """ working directory """
 
-        working_folder = Path(__file__).resolve().parents[2]
-        config_folder = working_folder / 'configs'
+        if config_folder is None:
+            working_folder = Path(__file__).resolve().parents[2]
+            config_folder = str(working_folder) + '/configs/'
 
 
         """ loading device path from the yaml file """
         try:
-            with open(config_folder / "device_path.yaml", "r") as file:
+            with open(config_folder + "device_path.yaml", "r") as file:
                 device = yaml.safe_load(file)
         except Exception as e:
             raise Exception('Could not load device_path.yaml from the working directory!') from e

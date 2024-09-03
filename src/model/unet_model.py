@@ -134,9 +134,50 @@ class UNet(nn.Module):
             history['val_accuracy'].append(val_epoch_accuracy)
             history['val_dice'].append(val_epoch_dice)
 
-            print(f'Epoch {epoch + 1}/{num_epochs}, Loss: {epoch_loss:.5f}, Accuracy: {epoch_accuracy:.5f}, Dice Score: {epoch_dice:.5f} Validation Loss: {val_epoch_loss:.5f}, Validation Accuracy: {val_epoch_accuracy:.5f}, Validation Dice Score: {val_epoch_dice:.5f}')
+            print(
+                f'Epoch {epoch + 1}/{num_epochs}, Loss: {epoch_loss:.5f}, Accuracy: {epoch_accuracy:.5f}, Dice Score: {epoch_dice:.5f} Validation Loss: {val_epoch_loss:.5f}, Validation Accuracy: {val_epoch_accuracy:.5f}, Validation Dice Score: {val_epoch_dice:.5f}')
 
         return history
+
+    def predict(self, test_loader, device):
+        self.eval()
+        output_dict, gt_dict = {}, {}
+        with torch.no_grad():
+            for batch in test_loader:
+                ctres = batch['ctres'].to(device)
+                suv = batch['suv'].to(device)
+                label = batch['label'].to(device)
+                label = label.permute(0, 3, 1, 2)
+                file_name = batch['file_name']
+
+                # Concatenate CTres and SUV images along the channel dimension
+                if self.modality == 'both':
+                    inputs = torch.cat((ctres, suv), dim=1)
+                elif self.modality == 'ct':
+                    inputs = ctres
+                elif self.modality == 'pet':
+                    inputs = suv
+                else:
+                    raise ValueError("the data modality is not defined")
+
+                outputs = self(inputs)
+                for i in range(len(file_name)):
+                    output_dict[file_name[i]] = outputs[i]
+                    gt_dict[file_name[i]] = label[i]
+        file_names = list(np.unique(['_'.join(key.split('_')[:-1]) for key in list(gt_dict.keys())]))
+        df_meta = pd.read_csv("./meta data/meta_data.csv")
+        results = []
+        for f_name in tqdm(file_names):
+            slice_idx = [int(key.split('_')[-1]) for key in list(gt_dict.keys()) if f_name in key]
+            slice_idx_in_order = list(np.argsort(slice_idx))
+            pred_list = [output_dict[key].detach().cpu() for key in list(gt_dict.keys()) if f_name in key]
+            pred_list_ordered = [torch.sigmoid(pred_list[idx]) > 0.5 for idx in slice_idx_in_order]
+            pred_array = np.concatenate(pred_list_ordered, axis=0)
+
+        return pred_array
+
+
+
     def evaluate(self, test_loader, device, criterion):
         self.eval()
         test_loss = 0.0
@@ -178,13 +219,12 @@ class UNet(nn.Module):
             gt_list = [gt_dict[key].detach().detach().cpu() for key in list(gt_dict.keys()) if f_name in key]
 
             pred_list_ordered = [torch.sigmoid(pred_list[idx]) > 0.5 for idx in slice_idx_in_order]
-            gt_list_ordered = [gt_list[idx]> 0.5 for idx in slice_idx_in_order]
-
+            gt_list_ordered = [gt_list[idx] > 0.5 for idx in slice_idx_in_order]
 
             pred_array = np.concatenate(pred_list_ordered, axis=0)
             gt_array = np.concatenate(gt_list_ordered, axis=0)
 
-            voxel_vol = df_meta['voxel volume'][df_meta['file name']==f_name].values
+            voxel_vol = df_meta['voxel volume'][df_meta['file name'] == f_name].values
             num_slides = df_meta['num of slices'][df_meta['file name'] == f_name].values
 
             false_neg_vol = false_neg_pix(gt_array, pred_array) * voxel_vol
@@ -201,7 +241,6 @@ class UNet(nn.Module):
         df_results = pd.DataFrame(results)
 
         return df_results
-
 
     def save_model(self, path):
         """Save the model's state dictionary to the specified path."""
